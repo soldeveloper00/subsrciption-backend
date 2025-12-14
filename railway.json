@@ -1,9 +1,11 @@
 {
-  "build": {
-    "builder": "NIXPACKS",
-    "buildCommand": "cargo build --release"
-  },
-  "deploy": {
-    "startCommand": "./target/release/trading-signals-backend"
-  }
+    "build": {
+        "builder": "NIXPACKS",
+        "buildCommand": "cargo build --release"
+    },
+    "deploy": {
+        "startCommand": "./target/release/trading-signals-backend",
+        "healthcheckPath": "/_health",
+        "healthcheckTimeout": 30
+    }
 }
