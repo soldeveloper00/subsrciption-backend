@@ -100,17 +100,23 @@ curl https://subsrciption-backend-production.up.railway.app/signals</code></pre>
             </html>
         "#)
 }
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    // Get port from Railway environment or default to 8080
     let port = std::env::var("PORT")
         .unwrap_or_else(|_| "8080".to_string())
         .parse::<u16>()
         .expect("PORT must be a number");
     
-    println!("🚀 Trading Signals Backend starting on port {}", port);
+    let bind_address = format!("0.0.0.0:{}", port);
+    
+    println!("🚀 Trading Signals Backend starting on {}", bind_address);
     println!("📊 Fetching LIVE prices from CoinGecko API");
     println!("✅ Supported coins: BTC, ETH, SOL, PAXG");
+    println!("📡 Health check available at: http://0.0.0.0:{}/_health", port);
     
+    // Configure and start the server
     HttpServer::new(|| {
         App::new()
             .service(health)
@@ -125,7 +131,9 @@ async fn main() -> std::io::Result<()> {
             .route("/clear-alerts", web::post().to(signals::clear_alerts))
             .route("/clear-cache", web::post().to(signals::clear_cache))
     })
-    .bind(("0.0.0.0", port))?  // ← CRITICAL LINE ADDED HERE
+    .bind(&bind_address)
+    .expect(&format!("Failed to bind to {}", bind_address))
+    .workers(2) // Reduce workers for Railway's memory limits
     .run()
     .await
 }
