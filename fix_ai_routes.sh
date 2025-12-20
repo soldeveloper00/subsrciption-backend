@@ -1,6 +1,16 @@
+#!/bin/bash
+
+# Backup original file
+cp src/routes/signals.rs src/routes/signals.rs.backup
+
+# Remove the #[get] macros from AI functions and make them regular async functions
+sed -i '395s/^#[get("\/explain-signal")]/\/\/ #[get("\/explain-signal")]/' src/routes/signals.rs
+sed -i '439s/^#[get("\/explain-all-signals")]/\/\/ #[get("\/explain-all-signals")]/' src/routes/signals.rs
+
+# Or simpler: Use this updated version
+cat > src/routes/signals.rs << 'SIGNALS_EOF'
 use actix_web::{get, HttpResponse, Responder, web};
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 use chrono::Utc;
 use std::sync::{Arc, Mutex};
 use std::collections::HashMap;
@@ -8,8 +18,6 @@ use std::time::{SystemTime, Duration};
 
 // Import AI module
 use super::ai_explanation::{AIExplainer, SignalExplanation};
-
-// Import AI module
 
 // Store to keep alerts in memory
 static ALERTS: std::sync::OnceLock<Arc<Mutex<Vec<TradingViewAlert>>>> = std::sync::OnceLock::new();
@@ -492,3 +500,4 @@ pub async fn explain_all_signals() -> impl Responder {
         "timestamp": Utc::now().timestamp()
     }))
 }
+SIGNALS_EOF

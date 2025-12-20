@@ -1,15 +1,10 @@
 use actix_web::{get, HttpResponse, Responder, web};
-use serde::{Deserialize, Serialize};
 use serde_json::json;
+use serde::{Deserialize, Serialize};
 use chrono::Utc;
 use std::sync::{Arc, Mutex};
 use std::collections::HashMap;
 use std::time::{SystemTime, Duration};
-
-// Import AI module
-use super::ai_explanation::{AIExplainer, SignalExplanation};
-
-// Import AI module
 
 // Store to keep alerts in memory
 static ALERTS: std::sync::OnceLock<Arc<Mutex<Vec<TradingViewAlert>>>> = std::sync::OnceLock::new();
@@ -41,7 +36,6 @@ pub struct TradingViewWebhook {
 }
 
 // ========== HEALTH CHECK ==========
-#[get("/health")]
 pub async fn health_check() -> impl Responder {
     HttpResponse::Ok().json(json!({
         "status": "healthy",
@@ -53,8 +47,6 @@ pub async fn health_check() -> impl Responder {
             "/health",
             "/prices", 
             "/signals",
-            "/explain-signal",
-            "/explain-all-signals",
             "/tradingview-webhook",
             "/tradingview-alerts",
             "/alerts/{symbol}"
@@ -152,7 +144,6 @@ async fn fetch_live_price(symbol: &str) -> Result<PriceData, String> {
     Ok(price_data)
 }
 
-#[get("/prices")]
 pub async fn get_prices() -> impl Responder {
     println!("🚀 Fetching live prices from CoinGecko...");
     
@@ -189,7 +180,6 @@ pub async fn get_prices() -> impl Responder {
 }
 
 // ========== SIGNAL GENERATION ==========
-#[get("/signals")]
 pub async fn get_signals() -> impl Responder {
     println!("📈 Generating trading signals...");
     
@@ -277,7 +267,7 @@ pub async fn tradingview_webhook(data: web::Json<TradingViewWebhook>) -> impl Re
     let mut alerts = alerts_store.lock().unwrap();
     alerts.push(alert.clone());
     
-    // FIXED: Store length in variable before using it
+    // Store length in variable before using it
     let alerts_len = alerts.len();
     if alerts_len > 50 {
         alerts.drain(0..alerts_len - 50);
@@ -305,8 +295,7 @@ fn clean_symbol(raw_symbol: &str) -> String {
         .to_uppercase()
 }
 
-// ========== ALERTS ENDPOINTS ==========
-#[get("/tradingview-alerts")]
+//  ALERTS ENDPOINTS 
 pub async fn get_tradingview_alerts() -> impl Responder {
     let alerts = ALERTS.get()
         .map(|store| store.lock().unwrap().clone())
@@ -319,7 +308,6 @@ pub async fn get_tradingview_alerts() -> impl Responder {
     }))
 }
 
-#[get("/alerts/{symbol}")]
 pub async fn get_symbol_alerts(symbol: web::Path<String>) -> impl Responder {
     let symbol_str = symbol.into_inner().to_uppercase();
     
@@ -341,7 +329,7 @@ pub async fn get_symbol_alerts(symbol: web::Path<String>) -> impl Responder {
     }))
 }
 
-// ========== UTILITY ENDPOINTS ==========
+// UTILITY ENDPOINTS
 pub async fn clear_alerts() -> impl Responder {
     if let Some(alerts_store) = ALERTS.get() {
         let mut alerts = alerts_store.lock().unwrap();
@@ -368,8 +356,7 @@ pub async fn clear_cache() -> impl Responder {
     }))
 }
 
-// ========== CACHE STATS ==========
-#[get("/cache-stats")]
+// CACHE STATS
 pub async fn get_cache_stats() -> impl Responder {
     let cache_info = if let Some(cache) = PRICE_CACHE.get() {
         let cache_lock = cache.lock().unwrap();
@@ -397,14 +384,15 @@ pub async fn get_cache_stats() -> impl Responder {
         "supported_coins": ["BTC", "ETH", "SOL", "PAXG"]
     }))
 }
+//AI EXPLANATION ENDPOINTS 
+use super::ai_explanation::{AIExplainer, SignalExplanation};
 
-// ========== AI EXPLANATION ENDPOINTS ==========
 #[derive(Deserialize)]
 pub struct ExplainQuery {
     pub symbol: Option<String>,
 }
 
-// Regular async function (NOT #[get] macro)
+#[get("/explain-signal")]
 pub async fn explain_signal(query: web::Query<ExplainQuery>) -> impl Responder {
     let explainer = AIExplainer::new();
     
@@ -448,7 +436,7 @@ pub async fn explain_signal(query: web::Query<ExplainQuery>) -> impl Responder {
     }
 }
 
-// Regular async function (NOT #[get] macro)
+#[get("/explain-all-signals")]
 pub async fn explain_all_signals() -> impl Responder {
     let explainer = AIExplainer::new();
     let symbols = vec!["BTC", "ETH", "SOL", "PAXG"];

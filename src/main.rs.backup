@@ -1,17 +1,12 @@
-use actix_web::{web, App, HttpServer, Responder, get, HttpResponse};
-
-// Import only the modules that exist
-use routes::{signals, wallet_simple, safe_integration, subscription, minimal_blockchain};
-
+use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
 mod routes;
+use routes::signals;
 
-// Simple health endpoint for early testing
 #[get("/_health")]
 async fn health() -> impl Responder {
-    "OK"
+    HttpResponse::Ok().body("OK")
 }
 
-// Root endpoint with API documentation
 #[get("/")]
 async fn index() -> impl Responder {
     HttpResponse::Ok()
@@ -20,11 +15,10 @@ async fn index() -> impl Responder {
             <!DOCTYPE html>
             <html>
             <head>
-                <title>Trading Signals Backend API</title>
+                <title>Trading Signals Backend</title>
                 <style>
                     body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
                     h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
-                    h3 { color: #2c3e50; margin-top: 25px; }
                     .endpoint { 
                         background: #f8f9fa; 
                         padding: 12px 15px; 
@@ -46,52 +40,31 @@ async fn index() -> impl Responder {
                     .post { background: #d1ecf1; color: #0c5460; }
                     a { color: #2980b9; text-decoration: none; }
                     a:hover { text-decoration: underline; }
-                    code { 
-                        background: #f1f1f1; 
-                        padding: 2px 6px; 
-                        border-radius: 3px; 
-                        font-family: monospace; 
-                    }
                     .container { max-width: 800px; margin: 0 auto; }
                 </style>
             </head>
             <body>
                 <div class="container">
-                    <h1>🚀 Trading Signals Backend API</h1>
-                    <p>Your backend is successfully deployed on Railway! 🎉</p>
+                    <h1>🚀 Trading Signals Backend</h1>
+                    <p>✅ Server is running on Railway!</p>
+                    <p>📊 <strong>Live Prices from CoinGecko:</strong> BTC, ETH, SOL, PAXG</p>
                     
-                    <h3>📊 Available Endpoints:</h3>
+                    <h3>🌐 Available Endpoints:</h3>
                     <div class="endpoint">
                         <span class="method get">GET</span> 
-                        <a href="/_health">/_health</a> - Health check endpoint
+                        <a href="/_health">/_health</a> - Simple health check
                     </div>
                     <div class="endpoint">
                         <span class="method get">GET</span> 
-                        <a href="/health">/health</a> - Full health check with coin info
+                        <a href="/health">/health</a> - Detailed health with endpoints
                     </div>
                     <div class="endpoint">
                         <span class="method get">GET</span> 
-                        <a href="/wallet/info">/wallet/info</a> - Wallet information
+                        <a href="/prices">/prices</a> - <strong>LIVE</strong> crypto prices from CoinGecko
                     </div>
                     <div class="endpoint">
                         <span class="method get">GET</span> 
-                        <a href="/wallet/test-connection">/wallet/test-connection</a> - Test Solana connection
-                    </div>
-                    <div class="endpoint">
-                        <span class="method post">POST</span> 
-                        /integration/set-condition - Set price condition
-                    </div>
-                    <div class="endpoint">
-                        <span class="method get">GET</span> 
-                        <a href="/integration/example">/integration/example</a> - Check condition example
-                    </div>
-                    <div class="endpoint">
-                        <span class="method get">GET</span> 
-                        <a href="/prices">/prices</a> - Live prices for BTC/ETH/SOL/PAXG
-                    </div>
-                    <div class="endpoint">
-                        <span class="method get">GET</span> 
-                        <a href="/signals">/signals</a> - Trading signals
+                        <a href="/signals">/signals</a> - Trading signals based on live prices
                     </div>
                     <div class="endpoint">
                         <span class="method post">POST</span> 
@@ -99,11 +72,11 @@ async fn index() -> impl Responder {
                     </div>
                     <div class="endpoint">
                         <span class="method get">GET</span> 
-                        <a href="/tradingview-alerts">/tradingview-alerts</a> - Recent TradingView alerts
+                        <a href="/tradingview-alerts">/tradingview-alerts</a> - Recent alerts
                     </div>
                     <div class="endpoint">
                         <span class="method get">GET</span> 
-                        <a href="/alerts/{symbol}">/alerts/{symbol}</a> - Alerts for specific symbol
+                        <a href="/alerts/BTC">/alerts/{symbol}</a> - Alerts for specific symbol
                     </div>
                     <div class="endpoint">
                         <span class="method get">GET</span> 
@@ -117,29 +90,11 @@ async fn index() -> impl Responder {
                         <span class="method post">POST</span> 
                         /clear-cache - Clear price cache
                     </div>
-                    <div class="endpoint">
-                        <span class="method post">POST</span> 
-                        /subscribe - Subscribe service
-                    </div>
-                    <div class="endpoint">
-                        <span class="method get">GET</span> 
-                        <a href="/status">/status</a> - Service status
-                    </div>
-                    <div class="endpoint">
-                        <span class="method get">GET</span> 
-                        <a href="/blockchain/status">/blockchain/status</a> - Blockchain status
-                    </div>
-                    <div class="endpoint">
-                        <span class="method get">GET</span> 
-                        <a href="/blockchain/test-integration">/blockchain/test-integration</a> - Test blockchain integration
-                    </div>
                     
-                    <h3>🔧 Testing Instructions:</h3>
-                    <p>Use <code>curl</code>, Postman, or Insomnia to test the endpoints:</p>
-                    <pre><code>curl https://your-app-name.up.railway.app/health
-curl https://your-app-name.up.railway.app/prices</code></pre>
-                    
-                    <p><strong>✅ Supported Coins: BTC, ETH, SOL, PAXG</strong></p>
+                    <h3>🔧 Testing:</h3>
+                    <p>Test with curl:</p>
+                    <pre><code>curl https://subsrciption-backend-production.up.railway.app/prices
+curl https://subsrciption-backend-production.up.railway.app/signals</code></pre>
                 </div>
             </body>
             </html>
@@ -148,81 +103,35 @@ curl https://your-app-name.up.railway.app/prices</code></pre>
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    // CRITICAL: Catch and log panics before they silently crash
-    std::panic::set_hook(Box::new(|panic_info| {
-        let location = panic_info.location().map(|loc| loc.to_string()).unwrap_or_else(|| "unknown location".to_string());
-        let payload = panic_info.payload();
-        let message = if let Some(s) = payload.downcast_ref::<&str>() {
-            *s
-        } else if let Some(s) = payload.downcast_ref::<String>() {
-            s.as_str()
-        } else {
-            "Unknown panic"
-        };
-        
-        eprintln!("🔥 APPLICATION PANIC DETECTED");
-        eprintln!("📌 Message: {}", message);
-        eprintln!("📍 Location: {}", location);
-        eprintln!("🔍 Backtrace (if enabled):");
-        
-        // Force backtrace if RUST_BACKTRACE is set
-        if std::env::var("RUST_BACKTRACE").is_ok() {
-            eprintln!("{:?}", std::backtrace::Backtrace::force_capture());
-        }
-        
-        std::process::exit(1);
-    }));
-
-    // Enable backtrace for debugging
-    std::env::set_var("RUST_BACKTRACE", "1");
+    // Load environment variables from .env file (local development)
+    // This will be ignored in production where Railway sets env vars
+    dotenv::dotenv().ok();
     
-    // Debug: Print environment info
-    println!("🔧 DEBUG: Starting application initialization");
-    println!("🔧 DEBUG: PORT env var: {:?}", std::env::var("PORT"));
-    println!("🔧 DEBUG: Current dir: {:?}", std::env::current_dir());
+    // Get port from Railway environment or default to 8080
+    let port = std::env::var("PORT")
+        .unwrap_or_else(|_| "8080".to_string())
+        .parse::<u16>()
+        .expect("PORT must be a number");
     
-    // Use PORT from environment or default to 8080
-    let port: u16 = std::env::var("PORT")
-        .unwrap_or_else(|_| {
-            println!("⚠️  DEBUG: PORT not set, defaulting to 8080");
-            "8080".to_string()
-        })
-        .parse()
-        .expect("❌ PORT must be a number");
-
-    println!("🚀 Starting Trading Signals Backend on 0.0.0.0:{}", port);
-    println!("📊 Supported Coins: BTC, ETH, SOL, PAXG");
-    println!("🌐 Endpoints:");
-    println!("   GET  /");
-    println!("   GET  /_health (debug endpoint)");
-    println!("   GET  /health (full health check)");
-    println!("   GET  /prices");
-    println!("   GET  /signals");
-    println!("   POST /tradingview-webhook");
-    println!("   GET  /tradingview-alerts");
-    println!("   GET  /alerts/{{symbol}}");
-    println!("   GET  /cache-stats");
-    println!("   POST /clear-alerts");
-    println!("   POST /clear-cache");
-    println!("   GET  /wallet/info");
-    println!("   GET  /wallet/test-connection");
-    println!("   POST /integration/set-condition");
-    println!("   GET  /integration/example");
-    println!("   POST /subscribe");
-    println!("   GET  /status");
-    println!("   GET  /blockchain/status");
-    println!("   GET  /blockchain/test-integration");
-
+    let bind_address = format!("0.0.0.0:{}", port);
+    
+    // Log environment configuration
+    let rpc_url = std::env::var("SOLANA_RPC_URL")
+        .unwrap_or_else(|_| "https://api.devnet.solana.com".to_string());
+    let network = std::env::var("NETWORK")
+        .unwrap_or_else(|_| "devnet".to_string());
+    
+    println!("🚀 Trading Signals Backend starting on {}", bind_address);
+    println!("🌐 Solana Network: {} ({})", network, rpc_url);
+    println!("📊 Fetching LIVE prices from CoinGecko API");
+    println!("✅ Supported coins: BTC, ETH, SOL, PAXG");
+    println!("📡 Health check available at: http://0.0.0.0:{}/_health", port);
+    
+    // Configure and start the server
     HttpServer::new(|| {
-        println!("🔧 DEBUG: Creating App instance (this runs multiple times)");
-        
         App::new()
-            // Root endpoint with documentation
-            .service(index)
-            // Debug health endpoint
             .service(health)
-            
-            // Signals endpoints (using your simplified signals.rs)
+            .service(index)
             .route("/health", web::get().to(signals::health_check))
             .route("/prices", web::get().to(signals::get_prices))
             .route("/signals", web::get().to(signals::get_signals))
@@ -232,28 +141,10 @@ async fn main() -> std::io::Result<()> {
             .route("/cache-stats", web::get().to(signals::get_cache_stats))
             .route("/clear-alerts", web::post().to(signals::clear_alerts))
             .route("/clear-cache", web::post().to(signals::clear_cache))
-            
-            // Wallet endpoints
-            .route("/wallet/info", web::get().to(wallet_simple::wallet_info))
-            .route("/wallet/test-connection", web::get().to(wallet_simple::test_solana_connection))
-
-            // Integration endpoints
-            .route("/integration/set-condition", web::post().to(safe_integration::set_price_condition))
-            .route("/integration/example", web::get().to(safe_integration::check_condition_example))
-
-            // Subscription endpoints
-            .route("/subscribe", web::post().to(subscription::subscribe))
-            .route("/status", web::get().to(subscription::status))
-
-            // Blockchain endpoints
-            .route("/blockchain/status", web::get().to(minimal_blockchain::blockchain_status))
-            .route("/blockchain/test-integration", web::get().to(minimal_blockchain::test_integration))
     })
-    .bind(("0.0.0.0", port))
-    .map_err(|e| {
-        eprintln!("❌ FAILED TO BIND TO PORT {}: {}", port, e);
-        e
-    })?
+    .bind(&bind_address)
+    .expect(&format!("Failed to bind to {}", bind_address))
+    .workers(1) // Reduced to 1 for Railway memory limits
     .run()
     .await
 }
