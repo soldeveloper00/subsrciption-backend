@@ -1,0 +1,20 @@
+warning: unused manifest key: dependencies.base64ct.force
+warning: field `api_key` is never read
+  --> src/routes/ai_explanation.rs:16:5
+   |
+15 | pub struct AIExplainer {
+   |            ----------- field in this struct
+16 |     api_key: String,
+   |     ^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `trading-signals-backend` (bin "trading-signals-backend") generated 1 warning
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.91s
+warning: the following packages contain code that will be rejected by a future version of Rust: solana-client v1.18.26
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running `target/debug/trading-signals-backend`
+🚀 Trading Signals Backend starting on port 8080
+📊 Fetching LIVE prices from CoinGecko API
+✅ Supported coins: BTC, ETH, SOL, PAXG
+🤖 AI Explanations available at /explain-signal
